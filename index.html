@@ -98,6 +98,18 @@ h1 em { font-style: normal; color: var(--blaze); }
 .stat b { display: block; font-family: var(--font-display); font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
 .stat span { font-family: var(--font-display); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 
+.divtabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 6px; background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1.5px solid var(--line); border-radius: 16px; }
+.divtab { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 10px; border: 0; border-radius: 11px; background: transparent; color: var(--muted); }
+.divtab:hover { border: 0; background: var(--chip); color: var(--ink); }
+.divtab .t { font-family: var(--font-dirt); font-size: clamp(24px, 4vw, 34px); line-height: 1; }
+.divtab .c { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.divtab[aria-selected="true"] { background: var(--ink); color: var(--panel); }
+.divtab[aria-selected="true"] .t { color: var(--blaze); }
+.roster .mv { padding: 4px 7px; font-size: 12px; }
+.roster li { flex-wrap: wrap; }
+.roster .nm { flex: 1 1 90px; }
+.roster .acts { display: flex; gap: 2px; align-items: center; margin-left: auto; }
+.roster button, .sign { white-space: nowrap; }
 .grid { display: grid; gap: 18px; grid-template-columns: minmax(250px, 1fr) minmax(330px, 1.4fr) minmax(300px, 1.25fr); align-items: start; }
 @media (max-width: 1100px) { .grid { grid-template-columns: 1fr 1fr; } .standings { grid-column: 1 / -1; } }
 @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
@@ -217,7 +229,13 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
 #reveal button.primary { background: #F26A2E; border-color: #F26A2E; color: #1A0D05; font-size: 20px; padding: 12px 26px; }
 #fx { position: fixed; inset: 0; pointer-events: none; z-index: 40; width: 100%; height: 100%; }
 
-#toast { position: fixed; left: 50%; transform: translateX(-50%) translateY(20px); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--panel); padding: 10px 18px; border-radius: 99px; font-weight: 600; opacity: 0; pointer-events: none; transition: .2s; max-width: calc(100% - 32px); text-align: center; z-index: 50; }
+#undoBar { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 45; display: flex; align-items: center; gap: 10px; max-width: min(420px, calc(100% - 32px)); background: var(--ink); color: var(--panel); border: 0; border-radius: 99px; padding: 10px 18px 10px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25); font-family: var(--font-display); font-weight: 800; font-size: 17px; letter-spacing: .04em; text-transform: uppercase; }
+#undoBar:hover { border: 0; filter: brightness(1.15); }
+#undoBar .ic { font-size: 20px; line-height: 1; }
+#undoBar .what { font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 13px; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#undoBar:disabled { opacity: 0; pointer-events: none; }
+.wrap { padding-bottom: 96px; }
+#toast { position: fixed; left: 50%; transform: translateX(-50%) translateY(20px); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--panel); padding: 10px 18px; border-radius: 99px; font-weight: 600; opacity: 0; pointer-events: none; transition: .2s; max-width: calc(100% - 32px); text-align: center; z-index: 50; }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
@@ -257,12 +275,16 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
     </svg>
   </div>
   </div>
+  <div class="divtabs" role="tablist" aria-label="Division">
+    <button type="button" class="divtab" role="tab" id="tab-men" data-div="men" aria-selected="true"><span class="t">Men</span><span class="c" id="cnt-men">0 riders</span></button>
+    <button type="button" class="divtab" role="tab" id="tab-women" data-div="women" aria-selected="false"><span class="t">Women</span><span class="c" id="cnt-women">0 riders</span></button>
+  </div>
   <div id="syncNote" class="note" hidden></div>
 
   <div class="grid">
     <!-- Riders -->
     <section class="panel" aria-labelledby="hRoster">
-      <h2 id="hRoster">Rider check-in <span class="sign"><i class="ts circle"></i>Step 1</span></h2>
+      <h2 id="hRoster">Check-in <span class="sign"><i class="ts circle"></i>Step 1</span></h2>
       <form id="addForm" class="row" autocomplete="off">
         <input type="text" id="addName" placeholder="Rider name, then Enter" aria-label="Rider name">
         <button class="primary" type="submit">Add</button>
@@ -310,7 +332,7 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
 
     <!-- Standings -->
     <section class="panel standings" aria-labelledby="hStand">
-      <h2 id="hStand">Podium <span class="sign"><i class="ts diamond"></i><i class="ts diamond"></i>Live</span></h2>
+      <h2 id="hStand"><span><span class="divname">Men</span>'s podium</span> <span class="sign"><i class="ts diamond"></i><i class="ts diamond"></i>Live</span></h2>
       <div class="podium" id="podium"></div>
       <button type="button" class="primary" id="openReveal" style="padding:11px;font-size:17px">Announce the winners</button>
       <ol class="board" id="board"></ol>
@@ -321,8 +343,8 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
         <ul class="log" id="log"></ul>
       </details>
       <div class="actions" style="justify-content:flex-end">
-        <button type="button" class="ghost" id="resetVotes">Clear all votes</button>
-        <button type="button" class="ghost" id="resetAll">Start over</button>
+        <button type="button" class="ghost" id="resetVotes">Clear votes in this tab</button>
+        <button type="button" class="ghost" id="resetAll">Start this tab over</button>
       </div>
     </section>
   </div>
@@ -341,12 +363,15 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
 <canvas id="topo" aria-hidden="true"></canvas>
 <canvas id="fx" aria-hidden="true"></canvas>
 <div id="toast" role="status" aria-live="polite"></div>
+<button type="button" id="undoBar" disabled title="Undo (Ctrl+Z / ⌘Z)"><span class="ic" aria-hidden="true">↶</span><span>Undo</span><span class="what" id="undoWhat"></span></button>
 
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
   const PTS = [3, 2, 1], PLACE = ["1st", "2nd", "3rd"], PCLS = ["g", "s", "b"];
-  const state = { people: new Map(), ballots: new Map() };
+  const state = { people: new Map(), ballots: new Map(), div: "men" };
+  const DIVS = { men: "Men", women: "Women" };
+  try { const d = localStorage.getItem("ambc-div"); if (DIVS[d]) state.div = d; } catch {}
   let db = null, cur = null; // cur = { voterId, picks:[id|null x3] }
   const LS = "ambc-bestline-v2";
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -356,14 +381,71 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
   function loadLocal() { try { const d = JSON.parse(localStorage.getItem(LS) || "null"); if (d) { state.people = new Map(d.people); state.ballots = new Map(d.ballots); } } catch {} }
   const newId = () => "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   async function write(fn, okMsg) {
-    try { await fn(); if (okMsg) toast(okMsg); }
-    catch (e) { toast(e && e.code === "invalid_argument" ? "You can view this tally but not change it." : "Couldn't save. Check your connection and try again."); }
+    try { await fn(); if (okMsg) toast(okMsg); return true; }
+    catch (e) { toast(e && e.code === "invalid_argument" ? "You can view this tally but not change it." : "Couldn't save. Check your connection and try again."); return false; }
   }
+
+  // ---------- undo ----------
+  // Every change saves a "before" snapshot of the riders/ballots it touches. Undo puts them back.
+  const UNDO_LS = "ambc-bestline-undo";
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(UNDO_LS) || "[]"); } catch { history = []; }
+  const clone = (o) => o == null ? null : JSON.parse(JSON.stringify(o));
+  const snap = (peopleIds, ballotIds) => ({
+    people: peopleIds.map((id) => [id, clone(state.people.get(id))]),
+    ballots: ballotIds.map((id) => [id, clone(state.ballots.get(id))]),
+  });
+  function record(label, s) {
+    history.push({ label, s, div: state.div }); if (history.length > 100) history.shift();
+    try { localStorage.setItem(UNDO_LS, JSON.stringify(history)); } catch {}
+    updateUndo();
+  }
+  async function applySnap(s) {
+    if (db) {
+      for (const [id, rec] of s.people) rec ? await db.doc("participants/" + id).set(rec) : await db.doc("participants/" + id).delete();
+      for (const [id, rec] of s.ballots) rec ? await db.doc("ballots/" + id).set(rec) : await db.doc("ballots/" + id).delete();
+    } else {
+      for (const [id, rec] of s.people) rec ? state.people.set(id, rec) : state.people.delete(id);
+      for (const [id, rec] of s.ballots) rec ? state.ballots.set(id, rec) : state.ballots.delete(id);
+      saveLocal(); render();
+    }
+  }
+  function updateUndo() {
+    const b = $("undoBar"), w = $("undoWhat");
+    if (cur && cur.hist.length) { b.disabled = false; w.textContent = cur.hist[cur.hist.length - 1].label; return; }
+    const last = history[history.length - 1];
+    b.disabled = !last; w.textContent = last ? last.label : "";
+  }
+  let undoing = false;
+  async function undo() {
+    if (undoing) return;
+    if (cur && cur.hist.length) { const h = cur.hist.pop(); cur.picks = h.picks; renderBallot(); toast("Undid: " + h.label); updateUndo(); return; }
+    const last = history[history.length - 1]; if (!last) return;
+    if (last.reopen) {
+      history.pop(); try { localStorage.setItem(UNDO_LS, JSON.stringify(history)); } catch {}
+      if (last.div && last.div !== state.div) setDiv(last.div);
+      if (state.people.has(last.reopen.voterId)) { openBallot(last.reopen.voterId, last.reopen.picks); toast("Undid: " + last.label); }
+      updateUndo(); return;
+    }
+    undoing = true;
+    if (cur) closeBallot();
+    if (last.div && last.div !== state.div) setDiv(last.div);
+    const ok = await write(() => applySnap(last.s), "Undid: " + last.label);
+    if (ok) { history.pop(); try { localStorage.setItem(UNDO_LS, JSON.stringify(history)); } catch {} }
+    undoing = false; updateUndo();
+  }
+  function pickStep(label) { cur.hist.push({ label, picks: cur.picks.slice() }); }
   const api = {
-    async addPerson(name, createdAt) {
-      const id = newId(), rec = { name, createdAt };
+    async movePerson(id, div) {
+      const rec = { ...state.people.get(id), div };
+      if (db) await db.doc("participants/" + id).set(rec);
+      else { state.people.set(id, rec); saveLocal(); render(); }
+    },
+    async addPerson(name, createdAt, div) {
+      const id = newId(), rec = { name, createdAt, div };
       if (db) await db.collection("participants").doc(id).set(rec);
       else { state.people.set(id, rec); saveLocal(); render(); }
+      return id;
     },
     async removePerson(id) {
       if (db) { await db.doc("participants/" + id).delete(); if (state.ballots.has(id)) await db.doc("ballots/" + id).delete(); }
@@ -383,18 +465,21 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
   // ---------- helpers ----------
   const nameOf = (id) => state.people.get(id)?.name ?? "(removed)";
   const byName = (a, b) => a[1].name.localeCompare(b[1].name, undefined, { sensitivity: "base" });
-  const sortedPeople = () => [...state.people].sort(byName);
-  function plates() { // number plates by sign-up order
-    const m = new Map(); [...state.people].sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0) || byName(a, b)).forEach(([id], i) => m.set(id, i + 1)); return m;
+  const divOf = (id) => state.people.get(id)?.div === "women" ? "women" : "men";
+  const inDiv = (id, d = state.div) => state.people.has(id) && divOf(id) === d;
+  const divPeople = (d = state.div) => [...state.people].filter(([id]) => divOf(id) === d);
+  const sortedPeople = () => divPeople().sort(byName);
+  function plates() { // number plates by sign-up order, per division
+    const m = new Map(); divPeople().sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0) || byName(a, b)).forEach(([id], i) => m.set(id, i + 1)); return m;
   }
   const fmtPlate = (n) => String(n).padStart(2, "0");
   const norm = (s) => s.trim().replace(/\s+/g, " ");
   const rankedOf = (b) => (b && Array.isArray(b.ranked) ? b.ranked : []).slice(0, 3);
   function standings() {
-    const t = new Map([...state.people].map(([id, p]) => [id, { id, name: p.name, pts: 0, c: [0, 0, 0] }]));
+    const t = new Map(divPeople().map(([id, p]) => [id, { id, name: p.name, pts: 0, c: [0, 0, 0] }]));
     let pts = 0;
     for (const [voter, b] of state.ballots) {
-      if (!state.people.has(voter)) continue;
+      if (!inDiv(voter)) continue;
       rankedOf(b).forEach((p, i) => { const r = t.get(p); if (r && p !== voter) { r.pts += PTS[i]; r.c[i]++; pts += PTS[i]; } });
     }
     const rows = [...t.values()].sort((a, b) => b.pts - a.pts || b.c[0] - a.c[0] || b.c[1] - a.c[1] || a.name.localeCompare(b.name));
@@ -416,7 +501,14 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
   function render() {
     const people = sortedPeople(), pl = plates();
     const { rows, pts } = standings();
-    const ballotsIn = [...state.ballots.keys()].filter((id) => state.people.has(id)).length;
+    const ballotsIn = [...state.ballots.keys()].filter((id) => inDiv(id)).length;
+    for (const d of Object.keys(DIVS)) {
+      const n = divPeople(d).length, bn = [...state.ballots.keys()].filter((id) => inDiv(id, d)).length;
+      $("cnt-" + d).textContent = `${n} rider${n === 1 ? "" : "s"} · ${bn} ballot${bn === 1 ? "" : "s"}`;
+      $("tab-" + d).setAttribute("aria-selected", String(d === state.div));
+    }
+    document.querySelectorAll(".divname").forEach((e) => e.textContent = DIVS[state.div]);
+    $("addName").placeholder = DIVS[state.div] + " rider name, then Enter";
     $("sPeople").textContent = people.length; $("sBallots").textContent = ballotsIn; $("sVotes").textContent = pts;
 
     // roster
@@ -426,11 +518,14 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
       if (f && !p.name.toLowerCase().includes(f)) continue;
       const voted = state.ballots.has(id);
       const rm = el("button", { type: "button", className: "ghost", textContent: "Remove", title: "Remove " + p.name });
-      rm.onclick = () => armed(rm, "Tap to confirm", () => { if (cur?.voterId === id) closeBallot(); write(() => api.removePerson(id), "Removed " + p.name); });
+      rm.onclick = () => armed(rm, "Tap to confirm", async () => { if (cur?.voterId === id) closeBallot(); const s = snap([id], [id]); if (await write(() => api.removePerson(id), "Removed " + p.name)) record("removed " + p.name, s); });
       const vb = el("button", { type: "button", className: "vote", textContent: voted ? "Edit" : "Vote" });
       vb.onclick = () => openBallot(id);
+      const other = state.div === "men" ? "women" : "men";
+      const mv = el("button", { type: "button", className: "ghost mv", textContent: "→ " + DIVS[other], title: "Move " + p.name + " to " + DIVS[other] });
+      mv.onclick = async () => { if (cur?.voterId === id) closeBallot(); const s = snap([id], []); if (await write(() => api.movePerson(id, other), "Moved " + p.name + " to " + DIVS[other])) record("moved " + p.name + " to " + DIVS[other], s); };
       ul.append(el("li", {}, el("span", { className: "plate", textContent: fmtPlate(pl.get(id)) }), el("span", { className: "nm", textContent: p.name }),
-        el("span", { className: "pill " + (voted ? "done" : "todo"), textContent: voted ? "Voted" : "Not yet" }), vb, rm));
+        el("span", { className: "pill " + (voted ? "done" : "todo"), textContent: voted ? "Voted" : "Not yet" }), el("span", { className: "acts" }, vb, mv, rm)));
     }
     $("rosterEmpty").hidden = people.length > 0;
 
@@ -447,7 +542,7 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
     }
     $("voterEmpty").hidden = people.length >= 2;
 
-    if (cur) { if (!state.people.has(cur.voterId)) closeBallot(); else renderBallot(); }
+    if (cur) { if (!inDiv(cur.voterId)) closeBallot(); else renderBallot(); }
 
     // podium
     const scored = rows.filter((r) => r.rank);
@@ -479,7 +574,7 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
 
     // log
     const log = $("log"); log.replaceChildren();
-    const bl = [...state.ballots].filter(([v]) => state.people.has(v)).sort((a, b) => (b[1].at || 0) - (a[1].at || 0));
+    const bl = [...state.ballots].filter(([v]) => inDiv(v)).sort((a, b) => (b[1].at || 0) - (a[1].at || 0));
     $("logCount").textContent = bl.length;
     for (const [v, b] of bl) {
       const txt = rankedOf(b).map((p, i) => p && state.people.has(p) ? `${PLACE[i]} ${nameOf(p)}` : null).filter(Boolean).join(" · ") || "no picks";
@@ -513,7 +608,7 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
       s.append(el("span", { className: "place" }, el("i", { className: "dot " + PCLS[i] }), PLACE[i] + " choice"),
         el("span", { className: "who", textContent: p ? nameOf(p) : (i === nextIdx ? "Tap a rider" : "—") }),
         el("span", { className: "pts", textContent: PTS[i] + (PTS[i] === 1 ? " pt" : " pts") + (p ? " · tap to clear" : "") }));
-      s.onclick = () => { if (p) { picks[i] = null; renderBallot(); } };
+      s.onclick = () => { if (p) { pickStep("cleared " + PLACE[i] + " pick"); picks[i] = null; renderBallot(); updateUndo(); } };
       s.setAttribute("aria-label", PLACE[i] + " choice: " + (p ? nameOf(p) + ", tap to clear" : "empty"));
       slots.append(s);
     });
@@ -538,17 +633,28 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
 
   function toggle(id, btn) {
     const picks = cur.picks, at = picks.indexOf(id);
-    if (at >= 0) picks[at] = null;
+    if (at >= 0) { pickStep("unpicked " + nameOf(id)); picks[at] = null; }
     else {
       const free = picks.indexOf(null);
       if (free < 0) { btn?.classList.remove("shake"); void btn?.offsetWidth; btn?.classList.add("shake"); toast("Three picks max. Tap a slot to free it up."); return; }
-      picks[free] = id;
+      pickStep("picked " + nameOf(id) + " " + PLACE[free]);
+      cur.picks[free] = id;
     }
-    renderBallot();
+    renderBallot(); updateUndo();
   }
-  function openBallot(id) {
-    const r = rankedOf(state.ballots.get(id));
-    cur = { voterId: id, picks: [r[0] || null, r[1] || null, r[2] || null] };
+  function setDiv(d) {
+    if (!DIVS[d] || d === state.div) return;
+    if (cur) $("cancelBallot").click();
+    state.div = d; try { localStorage.setItem("ambc-div", d); } catch {}
+    $("rosterFilter").value = ""; $("voterSearch").value = "";
+    render(); updateUndo();
+  }
+  document.querySelectorAll(".divtab").forEach((b) => b.onclick = () => setDiv(b.dataset.div));
+  function openBallot(id, restorePicks) {
+    if (state.people.has(id) && divOf(id) !== state.div) setDiv(divOf(id));
+    const r = restorePicks || rankedOf(state.ballots.get(id));
+    cur = { voterId: id, picks: [r[0] || null, r[1] || null, r[2] || null], hist: [] };
+    setTimeout(updateUndo);
     $("pickVoter").hidden = true; $("ballotBox").hidden = false; $("candSearch").value = "";
     renderBallot();
     $("hBallot").scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
@@ -556,7 +662,7 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
   }
   function closeBallot() {
     cur = null; $("pickVoter").hidden = false; $("ballotBox").hidden = true; $("voterSearch").value = "";
-    render(); $("voterSearch").focus({ preventScroll: true });
+    render(); updateUndo(); $("voterSearch").focus({ preventScroll: true });
   }
 
   // ---------- confetti (fall leaves) ----------
@@ -587,9 +693,9 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
   function showReveal() {
     const order = rvGroups.map((g, i) => i).reverse(); // 3rd → 1st
     const nm = $("rvName"), rk = $("rvRank"), pt = $("rvPts"), nx = $("rvNext");
-    if (rvStep === 0) { rk.textContent = "AMBC Fall Fest · Best Line"; nm.textContent = "Riders ready…"; pt.textContent = rvGroups.length + " podium spot" + (rvGroups.length > 1 ? "s" : "") + " to reveal"; nx.textContent = "Reveal " + PLACE[order[0]]; return; }
+    if (rvStep === 0) { rk.textContent = "AMBC Fall Fest · " + DIVS[state.div] + "'s Best Line"; nm.textContent = "Riders ready…"; pt.textContent = rvGroups.length + " podium spot" + (rvGroups.length > 1 ? "s" : "") + " to reveal"; nx.textContent = "Reveal " + PLACE[order[0]]; return; }
     const g = rvGroups[order[rvStep - 1]];
-    rk.textContent = (g.rows.length > 1 ? "Tied for " : "") + ordinalLabel(g.rank) + " place";
+    rk.textContent = DIVS[state.div] + " · " + (g.rows.length > 1 ? "Tied for " : "") + ordinalLabel(g.rank) + " place";
     nm.textContent = g.rows.map((r) => r.name).join(" & ");
     pt.textContent = g.rows[0].pts + " points · " + g.rows[0].c[0] + " first-place votes";
     [rk, nm, pt].forEach((e) => { e.classList.remove("pop"); void e.offsetWidth; e.classList.add("pop"); });
@@ -611,10 +717,12 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
     const fresh = [], dupes = [];
     for (const nm of names) { if (existing.has(nm.toLowerCase())) dupes.push(nm); else { existing.add(nm.toLowerCase()); fresh.push(nm); } }
     $("addName").value = "";
-    if (!fresh.length) { if (dupes.length) toast(dupes[0] + " is already on the list"); return; }
-    const t0 = Date.now();
-    write(async () => { for (let i = 0; i < fresh.length; i++) await api.addPerson(fresh[i], t0 + i); },
-      (fresh.length === 1 ? fresh[0] + " is staged" : fresh.length + " riders staged") + (dupes.length ? ` (skipped ${dupes.length} duplicate${dupes.length > 1 ? "s" : ""})` : ""));
+    if (!fresh.length) { if (dupes.length) { const hit = [...state.people.values()].find((p) => p.name.toLowerCase() === dupes[0].toLowerCase()); toast(dupes[0] + " is already on the " + DIVS[hit?.div === "women" ? "women" : "men"] + " list"); } return; }
+    const t0 = Date.now(), div = state.div;
+    const added = [];
+    write(async () => { for (let i = 0; i < fresh.length; i++) added.push(await api.addPerson(fresh[i], t0 + i, div)); },
+      (fresh.length === 1 ? fresh[0] + " added to " + DIVS[div] : fresh.length + " riders added to " + DIVS[div]) + (dupes.length ? ` (skipped ${dupes.length} duplicate${dupes.length > 1 ? "s" : ""})` : ""))
+      .finally(() => { if (added.length) record(added.length === 1 ? "added " + fresh[0] : "added " + added.length + " " + DIVS[div].toLowerCase(), { people: added.map((id) => [id, null]), ballots: [] }); });
   });
   $("addName").addEventListener("paste", (e) => {
     const txt = e.clipboardData?.getData("text") || "";
@@ -633,23 +741,40 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
     } else if (e.key === "Escape") closeBallot();
   });
   $("saveBallot").onclick = () => {
-    const v = cur.voterId, ranked = cur.picks.slice(), nm = nameOf(v);
-    write(() => api.saveBallot(v, ranked), "Sent! " + nm + "'s ballot is in");
+    const v = cur.voterId, ranked = cur.picks.slice(), nm = nameOf(v), s = snap([], [v]);
+    write(() => api.saveBallot(v, ranked), "Sent! " + nm + "'s ballot is in").then((ok) => { if (ok) record((s.ballots[0][1] ? "edited " : "saved ") + nm + "'s ballot", s); });
     const rd = $("rider"); if (rd && !reduce) { rd.classList.remove("hop"); void rd.getBoundingClientRect(); rd.classList.add("hop"); setTimeout(() => rd.classList.remove("hop"), 750); }
     const r = $("saveBallot").getBoundingClientRect(); burst(40, r.left + r.width / 2, r.top);
     closeBallot();
   };
-  $("cancelBallot").onclick = closeBallot;
-  $("clearBallot").onclick = () => armed($("clearBallot"), "Tap to confirm", () => { const v = cur.voterId; write(() => api.deleteBallot(v), "Deleted " + nameOf(v) + "'s ballot"); closeBallot(); });
-  $("resetVotes").onclick = () => armed($("resetVotes"), "Tap again to clear votes", () => write(async () => {
-    if (cur) closeBallot();
-    if (db) { for (const id of [...state.ballots.keys()]) await db.doc("ballots/" + id).delete(); } else { state.ballots.clear(); saveLocal(); render(); }
-  }, "All votes cleared"));
-  $("resetAll").onclick = () => armed($("resetAll"), "Tap again to erase everything", () => write(async () => {
-    if (cur) closeBallot();
-    if (db) { for (const id of [...state.ballots.keys()]) await db.doc("ballots/" + id).delete(); for (const id of [...state.people.keys()]) await db.doc("participants/" + id).delete(); }
-    else { state.ballots.clear(); state.people.clear(); saveLocal(); render(); }
-  }, "Cleared riders and votes"));
+  $("cancelBallot").onclick = () => {
+    const was = cur; closeBallot();
+    if (was && was.hist.length) record("cancelled " + nameOf(was.voterId) + "'s ballot", null), (history[history.length - 1].reopen = { voterId: was.voterId, picks: was.picks }), updateUndo();
+  };
+  $("clearBallot").onclick = () => armed($("clearBallot"), "Tap to confirm", () => { const v = cur.voterId, nm = nameOf(v), s = snap([], [v]); write(() => api.deleteBallot(v), "Deleted " + nm + "'s ballot").then((ok) => { if (ok) record("deleted " + nm + "'s ballot", s); }); closeBallot(); });
+  $("undoBar").onclick = undo;
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
+      const t = e.target; if (t && t.tagName === "INPUT" && t.value) return; // let text fields undo their own typing
+      e.preventDefault(); undo();
+    }
+  });
+  // clearing is scoped to the division on screen; the other tab is never touched
+  $("resetVotes").onclick = () => armed($("resetVotes"), "Tap again to clear " + DIVS[state.div] + " votes", () => {
+    const D = DIVS[state.div], bIds = [...state.ballots.keys()].filter((id) => inDiv(id)), s = snap([], bIds);
+    write(async () => {
+      if (cur) closeBallot();
+      if (db) { for (const id of bIds) await db.doc("ballots/" + id).delete(); } else { bIds.forEach((id) => state.ballots.delete(id)); saveLocal(); render(); }
+    }, D + " votes cleared").then((ok) => { if (ok) record("cleared " + D + " votes", s); });
+  });
+  $("resetAll").onclick = () => armed($("resetAll"), "Tap again to erase " + DIVS[state.div], () => {
+    const D = DIVS[state.div], pIds = divPeople().map(([id]) => id), bIds = pIds.filter((id) => state.ballots.has(id)), s = snap(pIds, bIds);
+    write(async () => {
+      if (cur) closeBallot();
+      if (db) { for (const id of bIds) await db.doc("ballots/" + id).delete(); for (const id of pIds) await db.doc("participants/" + id).delete(); }
+      else { bIds.forEach((id) => state.ballots.delete(id)); pIds.forEach((id) => state.people.delete(id)); saveLocal(); render(); }
+    }, D + " riders and votes cleared").then((ok) => { if (ok) record("erased " + D, s); });
+  });
 
   // ---------- topo map background ----------
   (function topo() {
@@ -716,7 +841,7 @@ footer { text-align: center; font-family: var(--font-display); font-weight: 700;
   })();
 
   // ---------- boot ----------
-  loadLocal(); render();
+  loadLocal(); render(); updateUndo();
   const note = $("syncNote");
   (async () => {
     const d = window.claude?.use ? await window.claude.use("db").catch(() => null) : null;
