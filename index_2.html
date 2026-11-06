@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}</style>
+</head>
+<body>
+<title>Fall Fest Best Line Tally</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: trailhead kiosk — riders | ballot | podium + standings; topo-map ground; collapses to one column on phones */
+:root {
+  --bg: #E9ECDF;          /* lichen paper */
+  --topo: rgba(63, 107, 58, .20);
+  --topo-index: rgba(63, 107, 58, .38);
+  --topo-trail: rgba(226, 87, 28, .55);
+  --panel: #FBFCF6;
+  --ink: #1C2A1F;         /* forest */
+  --muted: #5B6A5C;
+  --line: #D2D8C4;
+  --blaze: #E2571C;       /* trail blaze orange */
+  --blaze-ink: #FFFFFF;
+  --blaze-soft: #FBE1D3;
+  --moss: #3F6B3A;
+  --moss-soft: #DCE8D3;
+  --clay: #9C4A2B;        /* Appalachian red clay */
+  --chip: #EEF1E5;
+  --gold: #D9A21B; --silver: #9AA3A8; --bronze: #B06A3B;
+  --plate: #FFFFFF; --plate-ink: #1C2A1F;
+  --warn: #A3302A; --warn-soft: #F6DEDB;
+  --font-dirt: "Rubik Dirt", "Impact", system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121A14; --topo: rgba(140, 190, 130, .13); --topo-index: rgba(140, 190, 130, .26); --topo-trail: rgba(242, 106, 46, .5); --panel: #1A241C; --ink: #E8EDE2; --muted: #9AAB9A; --line: #2C3A2E;
+    --blaze: #F26A2E; --blaze-ink: #1A0D05; --blaze-soft: #3D2216; --moss: #8BC57F; --moss-soft: #223622; --clay: #E08A63;
+    --chip: #222E24; --plate: #EDEFE6; --plate-ink: #121A14; --warn: #F08A82; --warn-soft: #3A1E1C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121A14; --topo: rgba(140, 190, 130, .13); --topo-index: rgba(140, 190, 130, .26); --topo-trail: rgba(242, 106, 46, .5); --panel: #1A241C; --ink: #E8EDE2; --muted: #9AAB9A; --line: #2C3A2E;
+  --blaze: #F26A2E; --blaze-ink: #1A0D05; --blaze-soft: #3D2216; --moss: #8BC57F; --moss-soft: #223622; --clay: #E08A63;
+  --chip: #222E24; --plate: #EDEFE6; --plate-ink: #121A14; --warn: #F08A82; --warn-soft: #3A1E1C;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background-color: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+}
+#topo { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+.wrap { max-width: 1360px; margin: 0 auto; padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 18px; }
+
+/* hero: Smoky Mountain ridges + airborne rider */
+:root { --sky: #D7E4E1; --r1: #A8BCC3; --r2: #8EA79E; --r3: #C98A3E; --r4: #B5653A; --r5: #2F4A33; --rider: #1C2A1F;
+  --t-green: #2E8B3E; --t-blue: #1F5FBF; --t-black: #141414; --t-sign: #FBFCF6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --sky: #1A2824; --r1: #2E3F47; --r2: #2E4439; --r3: #7A4E27; --r4: #6A3A22; --r5: #0C130E; --rider: #F1F3EA; --t-green: #4CB861; --t-blue: #5B93F0; --t-black: #F1F3EA; --t-sign: #1A241C; } }
+:root[data-theme="dark"] { --sky: #1A2824; --r1: #2E3F47; --r2: #2E4439; --r3: #7A4E27; --r4: #6A3A22; --r5: #0C130E; --rider: #F1F3EA; --t-green: #4CB861; --t-blue: #5B93F0; --t-black: #F1F3EA; --t-sign: #1A241C; }
+.hero { position: relative; border-radius: 18px; overflow: hidden; background: linear-gradient(180deg, var(--sky), color-mix(in srgb, var(--sky) 55%, var(--bg))); border: 1.5px solid var(--line); }
+.hero header { position: relative; z-index: 2; padding: 20px 20px 0; }
+.ridges { position: relative; height: 150px; margin-top: -24px; }
+.ridges svg.land { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.rider { position: absolute; left: calc(63% - 60px); bottom: 58px; width: 120px; height: 90px; color: var(--rider); animation: float 3.2s ease-in-out infinite; transform-origin: 50% 70%; }
+.rider.hop { animation: hop .7s cubic-bezier(.3,1.4,.5,1); }
+@keyframes float { 0%,100% { transform: translateY(0) rotate(-10deg); } 50% { transform: translateY(-6px) rotate(-7deg); } }
+@keyframes hop { 0% { transform: translateY(0) rotate(-10deg); } 40% { transform: translateY(-34px) rotate(-22deg); } 75% { transform: translateY(-8px) rotate(4deg); } 100% { transform: translateY(0) rotate(-10deg); } }
+@media (max-width: 560px) { .stats { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; } .stat { min-width: 0; padding: 8px 10px; } .stat span { font-size: 11px; } }
+@media (max-width: 560px) { .rider { width: 90px; height: 68px; left: calc(66% - 45px); bottom: 54px; } .ridges { height: 120px; } }
+/* trail difficulty signs */
+.sign { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); background: var(--t-sign); border: 2px solid var(--ink); border-radius: 5px; padding: 3px 9px 3px 7px; }
+.ts { width: 13px; height: 13px; display: inline-block; flex: none; }
+.ts.circle { background: var(--t-green); border-radius: 50%; }
+.ts.square { background: var(--t-blue); }
+.ts.diamond { background: var(--t-black); transform: rotate(45deg) scale(.82); }
+.ts.diamond + .ts.diamond { margin-left: -3px; }
+.plate { position: relative; }
+.plate::before, .plate::after { content: ""; position: absolute; top: 3px; width: 3px; height: 3px; border-radius: 50%; background: var(--ink); opacity: .55; }
+.plate::before { left: 4px; } .plate::after { right: 4px; }
+.tread { height: 10px; border-radius: 99px; background: repeating-linear-gradient(90deg, var(--line) 0 9px, transparent 9px 14px); opacity: .9; }
+/* header */
+header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 14px 24px; }
+.kicker { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--moss); }
+.blaze-mark { width: 10px; height: 18px; background: var(--blaze); border-radius: 2px; display: inline-block; transform: skewX(-8deg); }
+h1 { font-family: var(--font-dirt); font-weight: 400; font-size: clamp(36px, 6vw, 64px); line-height: .95; margin: 6px 0 4px; color: var(--ink); text-wrap: balance; }
+h1 em { font-style: normal; color: var(--blaze); }
+.tag { font-family: var(--font-display); font-weight: 600; font-size: 17px; color: var(--muted); margin: 0; }
+.stats { display: flex; gap: 8px; flex-wrap: wrap; }
+.stat { background: var(--panel); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 14px; min-width: 100px; }
+.stat b { display: block; font-family: var(--font-display); font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.stat span { font-family: var(--font-display); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+.grid { display: grid; gap: 18px; grid-template-columns: minmax(250px, 1fr) minmax(330px, 1.4fr) minmax(300px, 1.25fr); align-items: start; }
+@media (max-width: 1100px) { .grid { grid-template-columns: 1fr 1fr; } .standings { grid-column: 1 / -1; } }
+@media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+.panel { background: color-mix(in srgb, var(--panel) 90%, transparent); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; box-shadow: 0 2px 0 var(--line); }
+.panel h2 { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: .02em; text-transform: uppercase; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.step { font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--blaze-ink); background: var(--blaze); padding: 3px 9px; border-radius: 4px; transform: skewX(-8deg); }
+.step.live { background: var(--moss); color: var(--panel); }
+.hint { font-size: 14px; color: var(--muted); margin: 0; }
+
+input[type=text], input[type=search] {
+  width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+input:focus-visible, button:focus-visible { outline: 3px solid var(--blaze); outline-offset: 2px; }
+.row { display: flex; gap: 8px; }
+.row > input { flex: 1; min-width: 0; }
+button { font: inherit; cursor: pointer; border-radius: 10px; border: 1.5px solid var(--line); background: var(--panel); color: var(--ink); padding: 9px 14px; font-weight: 600; transition: transform .08s; }
+button:hover { border-color: var(--muted); }
+button:active { transform: translateY(1px); }
+button.primary { background: var(--blaze); border-color: var(--blaze); color: var(--blaze-ink); font-family: var(--font-display); font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+button.primary:hover { filter: brightness(1.07); }
+button.primary:disabled { opacity: .4; cursor: not-allowed; filter: none; }
+button.ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 6px 8px; font-weight: 500; }
+button.ghost:hover { color: var(--ink); background: var(--chip); }
+button.danger-armed { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+
+/* number plate */
+.plate { display: inline-grid; place-items: center; min-width: 38px; height: 28px; padding: 0 6px; background: var(--plate); color: var(--plate-ink); border: 2px solid var(--ink); border-radius: 6px 6px 10px 10px; font-family: var(--font-display); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; flex: none; }
+
+/* roster */
+.roster { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; max-height: 480px; overflow-y: auto; }
+.roster li { display: flex; align-items: center; gap: 8px; padding: 5px 4px 5px 6px; border-radius: 10px; }
+.roster li:hover { background: var(--chip); }
+.roster .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.pill { font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.pill.done { background: var(--moss-soft); color: var(--moss); }
+.pill.todo { background: var(--chip); color: var(--muted); }
+.roster button.vote { padding: 4px 10px; font-size: 13px; }
+
+/* ballot */
+.voter-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.voter-btn { padding: 6px 12px; border-radius: 99px; font-weight: 600; font-size: 14px; }
+.voter-btn.voted { color: var(--muted); border-style: dashed; font-weight: 500; }
+.current-voter { display: flex; align-items: center; gap: 10px; background: var(--ink); color: var(--panel); border-radius: 12px; padding: 10px 14px; }
+.current-voter .lbl { font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+.current-voter strong { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1.05; overflow-wrap: anywhere; display: block; }
+.slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.slot { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px; min-height: 74px; border-radius: 12px; border: 2px dashed var(--line); background: var(--bg); text-align: left; min-width: 0; }
+.slot .place { font-family: var(--font-display); font-weight: 800; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; display: flex; gap: 6px; align-items: center; }
+.slot .pts { font-size: 12px; color: var(--muted); font-weight: 600; }
+.slot .who { font-weight: 700; overflow-wrap: anywhere; font-size: 15px; line-height: 1.2; }
+.slot.filled { border-style: solid; background: var(--panel); }
+.slot.next { border-color: var(--blaze); }
+.slot[data-p="0"].filled { border-color: var(--gold); }
+.slot[data-p="1"].filled { border-color: var(--silver); }
+.slot[data-p="2"].filled { border-color: var(--bronze); }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.dot.g { background: var(--gold); } .dot.s { background: var(--silver); } .dot.b { background: var(--bronze); }
+.cands { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.cand { text-align: left; padding: 10px; border-radius: 12px; font-weight: 600; overflow-wrap: anywhere; min-height: 50px; display: flex; align-items: center; gap: 8px; }
+.cand .badge { margin-left: auto; font-family: var(--font-display); font-weight: 800; font-size: 13px; padding: 2px 7px; border-radius: 6px; color: #1C1A12; }
+.cand.sel { border-width: 2px; }
+.cand.sel.p0 { border-color: var(--gold); } .cand.sel.p0 .badge { background: var(--gold); }
+.cand.sel.p1 { border-color: var(--silver); } .cand.sel.p1 .badge { background: var(--silver); }
+.cand.sel.p2 { border-color: var(--bronze); } .cand.sel.p2 .badge { background: var(--bronze); color: #fff; }
+.cand.locked { opacity: .45; }
+.cand.shake { animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.actions .primary { flex: 1; min-width: 160px; padding: 12px; font-size: 18px; }
+.scoring { display: flex; gap: 6px 14px; flex-wrap: wrap; font-family: var(--font-display); font-weight: 700; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); padding-top: 10px; border-top: 1.5px dashed var(--line); }
+.scoring span { display: inline-flex; gap: 6px; align-items: center; }
+
+/* podium */
+.podium { display: grid; grid-template-columns: 1fr 1.1fr 1fr; align-items: end; gap: 8px; padding-top: 6px; }
+.pod { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; text-align: center; }
+.pod .names { font-family: var(--font-display); font-weight: 800; font-size: 18px; line-height: 1.1; overflow-wrap: anywhere; text-wrap: balance; }
+.pod .p { font-size: 13px; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.pod .step-block { width: 100%; border-radius: 10px 10px 4px 4px; display: grid; place-items: center; font-family: var(--font-dirt); font-size: 34px; color: #1C1A12; }
+.pod.first .step-block { height: 96px; background: var(--gold); }
+.pod.second .step-block { height: 70px; background: var(--silver); }
+.pod.third .step-block { height: 52px; background: var(--bronze); color: #fff; }
+.pod.first .names { font-size: 22px; }
+.pod.empty .names { color: var(--muted); font-weight: 600; font-size: 15px; }
+
+.board { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.board li { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; position: relative; isolation: isolate; }
+.board li .bar { position: absolute; inset: 0 auto 0 0; background: var(--chip); border-radius: 10px; z-index: -1; transition: width .4s ease; }
+.board li.r1 .bar { background: color-mix(in srgb, var(--gold) 28%, var(--panel)); }
+.board li.r2 .bar { background: color-mix(in srgb, var(--silver) 28%, var(--panel)); }
+.board li.r3 .bar { background: color-mix(in srgb, var(--bronze) 26%, var(--panel)); }
+.board .rk { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.board .who { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.board .who small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.board .ct { font-family: var(--font-display); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1; text-align: right; }
+.board .ct small { display: block; font-size: 11px; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+
+details summary { cursor: pointer; font-family: var(--font-display); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.log { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.log li { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; padding: 6px 8px; border-radius: 8px; background: var(--bg); }
+.log li span { min-width: 0; overflow-wrap: anywhere; }
+
+.empty { padding: 18px; text-align: center; color: var(--muted); border: 1.5px dashed var(--line); border-radius: 12px; font-size: 14px; }
+.note { font-size: 13px; color: var(--muted); }
+.note.warn { color: var(--warn); }
+footer { text-align: center; font-family: var(--font-display); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-size: 13px; }
+
+/* reveal overlay */
+#reveal { position: fixed; inset: 0; z-index: 30; background: rgba(15, 22, 16, .93); color: #F1F3EA; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; text-align: center;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+#reveal .rk { font-family: "Barlow Condensed", sans-serif; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; font-size: clamp(18px, 3vw, 28px); color: #F26A2E; }
+#reveal .nm { font-family: var(--font-dirt); font-size: clamp(44px, 10vw, 120px); line-height: .95; text-wrap: balance; overflow-wrap: anywhere; max-width: 100%; }
+#reveal .pt { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: clamp(18px, 2.6vw, 26px); color: #A9B8A6; }
+#reveal .pop { animation: pop .5s cubic-bezier(.2,1.6,.4,1); }
+@keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+#reveal .ra { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+#reveal button { background: transparent; color: #F1F3EA; border-color: #3A4A3C; }
+#reveal button.primary { background: #F26A2E; border-color: #F26A2E; color: #1A0D05; font-size: 20px; padding: 12px 26px; }
+#fx { position: fixed; inset: 0; pointer-events: none; z-index: 40; width: 100%; height: 100%; }
+
+#toast { position: fixed; left: 50%; transform: translateX(-50%) translateY(20px); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--panel); padding: 10px 18px; border-radius: 99px; font-weight: 600; opacity: 0; pointer-events: none; transition: .2s; max-width: calc(100% - 32px); text-align: center; z-index: 50; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <div class="hero">
+  <header>
+    <div>
+      <div class="kicker"><span class="blaze-mark"></span>AMBC Fall Fest · Knoxville</div>
+      <h1>Best <em>Line</em> Showdown</h1>
+      <p class="tag">Ride it, then rank it. 1st = 3 pts · 2nd = 2 pts · 3rd = 1 pt.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="sPeople">0</b><span>Riders</span></div>
+      <div class="stat"><b id="sBallots">0</b><span>Ballots in</span></div>
+      <div class="stat"><b id="sVotes">0</b><span>Points out</span></div>
+    </div>
+  </header>
+  <div class="ridges" aria-hidden="true">
+    <svg class="land" viewBox="0 0 1200 150" preserveAspectRatio="none">
+      <path fill="var(--r1)" d="M0 70 C80 40 150 50 230 30 C310 12 380 46 460 36 C540 26 600 8 690 22 C780 36 840 14 930 20 C1020 26 1100 44 1200 30 L1200 150 L0 150Z"/>
+      <path fill="var(--r2)" d="M0 92 C90 70 160 82 250 62 C340 44 420 74 520 64 C610 55 680 40 770 54 C860 68 950 48 1040 56 C1110 62 1160 70 1200 62 L1200 150 L0 150Z"/>
+      <path fill="var(--r3)" d="M0 108 C100 92 180 102 280 88 C370 76 450 98 540 92 C630 86 700 78 790 88 C880 98 970 82 1060 90 C1130 96 1170 100 1200 96 L1200 150 L0 150Z"/>
+      <path fill="var(--r4)" d="M0 120 C120 110 220 118 330 108 C430 100 520 116 620 112 C700 108 760 104 840 112 C940 120 1040 106 1200 114 L1200 150 L0 150Z"/>
+      <path fill="var(--r5)" d="M0 132 C140 126 260 134 380 128 C480 123 560 130 640 126 L700 104 L716 104 L722 128 C760 130 820 132 880 130 L960 122 C1040 126 1120 130 1200 128 L1200 150 L0 150Z"/>
+    </svg>
+    <svg class="rider" id="rider" viewBox="0 0 120 90" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <g stroke-width="2.4" opacity=".5"><path d="M2 44h12M0 54h10M4 64h8"/></g>
+      <circle cx="28" cy="62" r="15" stroke-width="3.4"/>
+      <circle cx="28" cy="62" r="17.6" stroke-width="2.6" stroke-dasharray="2 3.2"/>
+      <circle cx="90" cy="62" r="15" stroke-width="3.4"/>
+      <circle cx="90" cy="62" r="17.6" stroke-width="2.6" stroke-dasharray="2 3.2"/>
+      <g stroke-width="3.4"><path d="M28 62 L54 64 L47 38 Z"/><path d="M47 40 L78 37 L54 64"/><path d="M78 34 L90 62"/><path d="M76 30 L80 34"/><path d="M72 29 L84 28"/><path d="M43 37 L52 37"/></g>
+      <circle cx="54" cy="64" r="2.6" fill="currentColor" stroke="none"/>
+      <g stroke-width="5"><path d="M47 33 L66 20"/><path d="M66 21 L72 27 L80 28"/><path d="M48 34 L62 46 L57 66"/><path d="M47 34 L50 50 L51 64"/></g>
+      <path d="M65 12 a8 8 0 0 1 15 2 l4 1 -2 2 h-16 z" fill="currentColor" stroke="none"/>
+    </svg>
+  </div>
+  </div>
+  <div id="syncNote" class="note" hidden></div>
+
+  <div class="grid">
+    <!-- Riders -->
+    <section class="panel" aria-labelledby="hRoster">
+      <h2 id="hRoster">Rider check-in <span class="sign"><i class="ts circle"></i>Step 1</span></h2>
+      <form id="addForm" class="row" autocomplete="off">
+        <input type="text" id="addName" placeholder="Rider name, then Enter" aria-label="Rider name">
+        <button class="primary" type="submit">Add</button>
+      </form>
+      <p class="hint">Paste a whole list to add everyone at once (commas or new lines).</p>
+      <input type="search" id="rosterFilter" placeholder="Search riders" aria-label="Search riders">
+      <ul class="roster" id="roster"></ul>
+      <div id="rosterEmpty" class="empty" hidden>No riders yet. Add the first name above to hand out number plates.</div>
+    </section>
+
+    <!-- Ballot -->
+    <section class="panel" aria-labelledby="hBallot">
+      <h2 id="hBallot">Rank the lines <span class="sign"><i class="ts square"></i>Step 2</span></h2>
+
+      <div id="pickVoter">
+        <p class="hint" style="margin-bottom:8px">Who's voting? Tap their name, or search and press Enter.</p>
+        <input type="search" id="voterSearch" placeholder="Find a rider" aria-label="Find voter" style="margin-bottom:10px">
+        <div class="voter-list" id="voterList"></div>
+        <div id="voterEmpty" class="empty" hidden>Add at least two riders to start voting.</div>
+      </div>
+
+      <div id="ballotBox" hidden style="display:flex;flex-direction:column;gap:10px">
+        <div class="current-voter">
+          <span class="plate" id="voterPlate"></span>
+          <div style="min-width:0"><div class="lbl">Ballot for</div><strong id="voterName"></strong></div>
+        </div>
+        <div class="slots" id="slots"></div>
+        <p class="hint" id="ballotHint"></p>
+        <input type="search" id="candSearch" placeholder="Filter riders (Enter picks the first match)" aria-label="Filter riders">
+        <div class="cands" id="cands"></div>
+        <div class="actions">
+          <button class="primary" id="saveBallot" type="button">Send it!</button>
+          <button type="button" id="cancelBallot">Cancel</button>
+          <button type="button" class="ghost" id="clearBallot" hidden>Delete ballot</button>
+        </div>
+      </div>
+
+      <div class="tread" aria-hidden="true"></div>
+      <div class="scoring" style="border-top:0;padding-top:0">
+        <span><i class="dot g"></i>1st · 3 pts</span>
+        <span><i class="dot s"></i>2nd · 2 pts</span>
+        <span><i class="dot b"></i>3rd · 1 pt</span>
+      </div>
+    </section>
+
+    <!-- Standings -->
+    <section class="panel standings" aria-labelledby="hStand">
+      <h2 id="hStand">Podium <span class="sign"><i class="ts diamond"></i><i class="ts diamond"></i>Live</span></h2>
+      <div class="podium" id="podium"></div>
+      <button type="button" class="primary" id="openReveal" style="padding:11px;font-size:17px">Announce the winners</button>
+      <ol class="board" id="board"></ol>
+      <div id="boardEmpty" class="empty">Standings show up here as ballots come in.</div>
+      <p class="hint" style="font-size:12px">Ties on points go to whoever has more 1st-place votes, then more 2nd-place votes.</p>
+      <details>
+        <summary>Ballot log (<span id="logCount">0</span>)</summary>
+        <ul class="log" id="log"></ul>
+      </details>
+      <div class="actions" style="justify-content:flex-end">
+        <button type="button" class="ghost" id="resetVotes">Clear all votes</button>
+        <button type="button" class="ghost" id="resetAll">Start over</button>
+      </div>
+    </section>
+  </div>
+  <footer>Pin it, send it, rank it · We dig trails · Go ride!</footer>
+</div>
+
+<div id="reveal" hidden role="dialog" aria-modal="true" aria-label="Winner announcement">
+  <div class="rk" id="rvRank">Best Line Showdown</div>
+  <div class="nm" id="rvName">Ready?</div>
+  <div class="pt" id="rvPts">Tap below to reveal 3rd place</div>
+  <div class="ra">
+    <button type="button" class="primary" id="rvNext">Reveal 3rd</button>
+    <button type="button" id="rvClose">Close</button>
+  </div>
+</div>
+<canvas id="topo" aria-hidden="true"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const PTS = [3, 2, 1], PLACE = ["1st", "2nd", "3rd"], PCLS = ["g", "s", "b"];
+  const state = { people: new Map(), ballots: new Map() };
+  let db = null, cur = null; // cur = { voterId, picks:[id|null x3] }
+  const LS = "ambc-bestline-v2";
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- storage ----------
+  function saveLocal() { if (db) return; try { localStorage.setItem(LS, JSON.stringify({ people: [...state.people], ballots: [...state.ballots] })); } catch {} }
+  function loadLocal() { try { const d = JSON.parse(localStorage.getItem(LS) || "null"); if (d) { state.people = new Map(d.people); state.ballots = new Map(d.ballots); } } catch {} }
+  const newId = () => "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  async function write(fn, okMsg) {
+    try { await fn(); if (okMsg) toast(okMsg); }
+    catch (e) { toast(e && e.code === "invalid_argument" ? "You can view this tally but not change it." : "Couldn't save. Check your connection and try again."); }
+  }
+  const api = {
+    async addPerson(name, createdAt) {
+      const id = newId(), rec = { name, createdAt };
+      if (db) await db.collection("participants").doc(id).set(rec);
+      else { state.people.set(id, rec); saveLocal(); render(); }
+    },
+    async removePerson(id) {
+      if (db) { await db.doc("participants/" + id).delete(); if (state.ballots.has(id)) await db.doc("ballots/" + id).delete(); }
+      else { state.people.delete(id); state.ballots.delete(id); saveLocal(); render(); }
+    },
+    async saveBallot(voterId, ranked) {
+      const rec = { ranked, at: Date.now() };
+      if (db) await db.doc("ballots/" + voterId).set(rec);
+      else { state.ballots.set(voterId, rec); saveLocal(); render(); }
+    },
+    async deleteBallot(voterId) {
+      if (db) await db.doc("ballots/" + voterId).delete();
+      else { state.ballots.delete(voterId); saveLocal(); render(); }
+    },
+  };
+
+  // ---------- helpers ----------
+  const nameOf = (id) => state.people.get(id)?.name ?? "(removed)";
+  const byName = (a, b) => a[1].name.localeCompare(b[1].name, undefined, { sensitivity: "base" });
+  const sortedPeople = () => [...state.people].sort(byName);
+  function plates() { // number plates by sign-up order
+    const m = new Map(); [...state.people].sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0) || byName(a, b)).forEach(([id], i) => m.set(id, i + 1)); return m;
+  }
+  const fmtPlate = (n) => String(n).padStart(2, "0");
+  const norm = (s) => s.trim().replace(/\s+/g, " ");
+  const rankedOf = (b) => (b && Array.isArray(b.ranked) ? b.ranked : []).slice(0, 3);
+  function standings() {
+    const t = new Map([...state.people].map(([id, p]) => [id, { id, name: p.name, pts: 0, c: [0, 0, 0] }]));
+    let pts = 0;
+    for (const [voter, b] of state.ballots) {
+      if (!state.people.has(voter)) continue;
+      rankedOf(b).forEach((p, i) => { const r = t.get(p); if (r && p !== voter) { r.pts += PTS[i]; r.c[i]++; pts += PTS[i]; } });
+    }
+    const rows = [...t.values()].sort((a, b) => b.pts - a.pts || b.c[0] - a.c[0] || b.c[1] - a.c[1] || a.name.localeCompare(b.name));
+    let rank = 0;
+    rows.forEach((r, i) => { const p = rows[i - 1]; if (!p || p.pts !== r.pts || p.c[0] !== r.c[0] || p.c[1] !== r.c[1]) rank = i + 1; r.rank = r.pts ? rank : null; });
+    return { rows, pts };
+  }
+  let toastT;
+  function toast(msg) { const el = $("toast"); el.textContent = msg; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 2200); }
+  function el(tag, props = {}, ...kids) { const e = document.createElement(tag); Object.assign(e, props); for (const k of kids) e.append(k); return e; }
+  function armed(btn, label, action) {
+    if (btn.dataset.armed) { delete btn.dataset.armed; btn.classList.remove("danger-armed"); btn.textContent = btn.dataset.orig; action(); return; }
+    btn.dataset.armed = "1"; btn.dataset.orig = btn.textContent; btn.textContent = label; btn.classList.add("danger-armed");
+    setTimeout(() => { if (btn.dataset.armed) { delete btn.dataset.armed; btn.classList.remove("danger-armed"); btn.textContent = btn.dataset.orig; } }, 3000);
+  }
+  const ordinalLabel = (r) => r === 1 ? "1st" : r === 2 ? "2nd" : r === 3 ? "3rd" : r + "th";
+
+  // ---------- render ----------
+  function render() {
+    const people = sortedPeople(), pl = plates();
+    const { rows, pts } = standings();
+    const ballotsIn = [...state.ballots.keys()].filter((id) => state.people.has(id)).length;
+    $("sPeople").textContent = people.length; $("sBallots").textContent = ballotsIn; $("sVotes").textContent = pts;
+
+    // roster
+    const f = $("rosterFilter").value.trim().toLowerCase();
+    const ul = $("roster"); ul.replaceChildren();
+    for (const [id, p] of people) {
+      if (f && !p.name.toLowerCase().includes(f)) continue;
+      const voted = state.ballots.has(id);
+      const rm = el("button", { type: "button", className: "ghost", textContent: "Remove", title: "Remove " + p.name });
+      rm.onclick = () => armed(rm, "Tap to confirm", () => { if (cur?.voterId === id) closeBallot(); write(() => api.removePerson(id), "Removed " + p.name); });
+      const vb = el("button", { type: "button", className: "vote", textContent: voted ? "Edit" : "Vote" });
+      vb.onclick = () => openBallot(id);
+      ul.append(el("li", {}, el("span", { className: "plate", textContent: fmtPlate(pl.get(id)) }), el("span", { className: "nm", textContent: p.name }),
+        el("span", { className: "pill " + (voted ? "done" : "todo"), textContent: voted ? "Voted" : "Not yet" }), vb, rm));
+    }
+    $("rosterEmpty").hidden = people.length > 0;
+
+    // voter picker
+    const vs = $("voterSearch").value.trim().toLowerCase();
+    const vl = $("voterList"); vl.replaceChildren();
+    const pending = people.filter(([id]) => !state.ballots.has(id)), done = people.filter(([id]) => state.ballots.has(id));
+    for (const [id, p] of [...pending, ...done]) {
+      if (vs && !p.name.toLowerCase().includes(vs)) continue;
+      const v = state.ballots.has(id);
+      const b = el("button", { type: "button", className: "voter-btn" + (v ? " voted" : ""), textContent: p.name + (v ? " ✓" : "") });
+      b.onclick = () => openBallot(id);
+      vl.append(b);
+    }
+    $("voterEmpty").hidden = people.length >= 2;
+
+    if (cur) { if (!state.people.has(cur.voterId)) closeBallot(); else renderBallot(); }
+
+    // podium
+    const scored = rows.filter((r) => r.rank);
+    const pod = $("podium"); pod.replaceChildren();
+    const tier = (k) => scored.filter((r) => r.rank === k);
+    const groups = podiumGroups(scored);
+    [[1, "second"], [0, "first"], [2, "third"]].forEach(([gi, cls]) => {
+      const g = groups[gi];
+      const names = g ? g.rows.map((r) => r.name).join(" & ") : "Open spot";
+      const lbl = g ? (g.rows.length > 1 ? "T-" : "") + ordinalLabel(g.rank) : ["1st", "2nd", "3rd"][gi];
+      pod.append(el("div", { className: "pod " + cls + (g ? "" : " empty") },
+        el("div", { className: "names", textContent: names }),
+        el("div", { className: "p", textContent: g ? g.rows[0].pts + " pts" : "–" }),
+        el("div", { className: "step-block", textContent: lbl })));
+    });
+    $("openReveal").disabled = scored.length === 0;
+
+    // board
+    const max = rows[0]?.pts || 0;
+    const board = $("board"); board.replaceChildren();
+    for (const r of rows) {
+      const bar = el("div", { className: "bar" }); bar.style.width = max && r.pts ? Math.max(4, (r.pts / max) * 100) + "%" : "0%";
+      const who = el("div", { className: "who", textContent: r.name });
+      who.append(el("small", { textContent: r.pts ? `${r.c[0]}× 1st · ${r.c[1]}× 2nd · ${r.c[2]}× 3rd` : (state.ballots.has(r.id) ? "Voted · no points yet" : "No points yet") }));
+      const ct = el("div", { className: "ct", textContent: r.pts }); ct.append(el("small", { textContent: "PTS" }));
+      board.append(el("li", { className: r.rank && r.rank <= 3 ? "r" + r.rank : "" }, bar, el("span", { className: "rk", textContent: r.rank ? "#" + r.rank : "–" }), who, ct));
+    }
+    $("boardEmpty").hidden = people.length > 0;
+
+    // log
+    const log = $("log"); log.replaceChildren();
+    const bl = [...state.ballots].filter(([v]) => state.people.has(v)).sort((a, b) => (b[1].at || 0) - (a[1].at || 0));
+    $("logCount").textContent = bl.length;
+    for (const [v, b] of bl) {
+      const txt = rankedOf(b).map((p, i) => p && state.people.has(p) ? `${PLACE[i]} ${nameOf(p)}` : null).filter(Boolean).join(" · ") || "no picks";
+      const eb = el("button", { type: "button", className: "ghost", textContent: "Edit" }); eb.onclick = () => openBallot(v);
+      log.append(el("li", {}, el("span", {}, el("b", { textContent: nameOf(v) }), " → " + txt), eb));
+    }
+  }
+
+  // top-three podium groups (ties share a step; stop after three riders are placed)
+  function podiumGroups(scored) {
+    const groups = []; let placed = 0;
+    for (const r of scored) {
+      const last = groups[groups.length - 1];
+      if (last && last.rank === r.rank) { last.rows.push(r); placed++; continue; }
+      if (placed >= 3) break;
+      groups.push({ rank: r.rank, rows: [r] }); placed++;
+    }
+    return groups.slice(0, 3);
+  }
+
+  function renderBallot() {
+    const picks = cur.picks;
+    for (let i = 0; i < 3; i++) if (picks[i] && !state.people.has(picks[i])) picks[i] = null;
+    $("voterName").textContent = nameOf(cur.voterId);
+    $("voterPlate").textContent = fmtPlate(plates().get(cur.voterId));
+    const nextIdx = picks.indexOf(null);
+    const slots = $("slots"); slots.replaceChildren();
+    picks.forEach((p, i) => {
+      const s = el("button", { type: "button", className: "slot" + (p ? " filled" : "") + (i === nextIdx ? " next" : "") });
+      s.dataset.p = i;
+      s.append(el("span", { className: "place" }, el("i", { className: "dot " + PCLS[i] }), PLACE[i] + " choice"),
+        el("span", { className: "who", textContent: p ? nameOf(p) : (i === nextIdx ? "Tap a rider" : "—") }),
+        el("span", { className: "pts", textContent: PTS[i] + (PTS[i] === 1 ? " pt" : " pts") + (p ? " · tap to clear" : "") }));
+      s.onclick = () => { if (p) { picks[i] = null; renderBallot(); } };
+      s.setAttribute("aria-label", PLACE[i] + " choice: " + (p ? nameOf(p) + ", tap to clear" : "empty"));
+      slots.append(s);
+    });
+    const filled = picks.filter(Boolean).length;
+    $("ballotHint").textContent = filled === 3 ? "All three picked. Send it, or tap a slot to change it." : `Tap riders in order: next pick is their ${PLACE[nextIdx]} choice.`;
+    const cs = $("candSearch").value.trim().toLowerCase();
+    const box = $("cands"); box.replaceChildren();
+    for (const [id, p] of sortedPeople()) {
+      if (id === cur.voterId) continue;
+      if (cs && !p.name.toLowerCase().includes(cs)) continue;
+      const pi = picks.indexOf(id);
+      const b = el("button", { type: "button", className: "cand" + (pi >= 0 ? " sel p" + pi : "") + (pi < 0 && filled >= 3 ? " locked" : "") });
+      b.append(el("span", { textContent: p.name }));
+      if (pi >= 0) b.append(el("span", { className: "badge", textContent: PLACE[pi] }));
+      b.setAttribute("aria-pressed", String(pi >= 0)); b.dataset.id = id;
+      b.onclick = () => toggle(id, b);
+      box.append(b);
+    }
+    $("saveBallot").disabled = filled === 0;
+    $("clearBallot").hidden = !state.ballots.has(cur.voterId);
+  }
+
+  function toggle(id, btn) {
+    const picks = cur.picks, at = picks.indexOf(id);
+    if (at >= 0) picks[at] = null;
+    else {
+      const free = picks.indexOf(null);
+      if (free < 0) { btn?.classList.remove("shake"); void btn?.offsetWidth; btn?.classList.add("shake"); toast("Three picks max. Tap a slot to free it up."); return; }
+      picks[free] = id;
+    }
+    renderBallot();
+  }
+  function openBallot(id) {
+    const r = rankedOf(state.ballots.get(id));
+    cur = { voterId: id, picks: [r[0] || null, r[1] || null, r[2] || null] };
+    $("pickVoter").hidden = true; $("ballotBox").hidden = false; $("candSearch").value = "";
+    renderBallot();
+    $("hBallot").scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+    $("candSearch").focus({ preventScroll: true });
+  }
+  function closeBallot() {
+    cur = null; $("pickVoter").hidden = false; $("ballotBox").hidden = true; $("voterSearch").value = "";
+    render(); $("voterSearch").focus({ preventScroll: true });
+  }
+
+  // ---------- confetti (fall leaves) ----------
+  const fx = $("fx"), ctx = fx.getContext("2d"); let parts = [], raf = 0;
+  function burst(n = 90, x = innerWidth / 2, y = innerHeight * .35) {
+    if (reduce) return;
+    const cols = ["#E2571C", "#D9A21B", "#9C4A2B", "#3F6B3A", "#F2C14E", "#B06A3B"];
+    for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = 4 + Math.random() * 7;
+      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 4, r: Math.random() * 6.28, vr: (Math.random() - .5) * .3, s: 6 + Math.random() * 7, c: cols[i % cols.length], life: 110 + Math.random() * 50 }); }
+    if (!raf) loop();
+  }
+  function loop() {
+    fx.width = innerWidth * devicePixelRatio; fx.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); ctx.clearRect(0, 0, innerWidth, innerHeight);
+    parts = parts.filter((p) => p.life-- > 0);
+    for (const p of parts) { p.vy += .18; p.vx *= .985; p.x += p.vx + Math.sin(p.life / 9); p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.min(1, p.life / 40); ctx.fillStyle = p.c;
+      ctx.beginPath(); ctx.ellipse(0, 0, p.s, p.s * .45, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+    raf = parts.length ? requestAnimationFrame(loop) : (ctx.clearRect(0, 0, innerWidth, innerHeight), 0);
+  }
+
+  // ---------- reveal ----------
+  let rvGroups = [], rvStep = 0;
+  function openReveal() {
+    rvGroups = podiumGroups(standings().rows.filter((r) => r.rank)); if (!rvGroups.length) return;
+    rvStep = 0; $("reveal").hidden = false; showReveal(); $("rvNext").focus();
+  }
+  function showReveal() {
+    const order = rvGroups.map((g, i) => i).reverse(); // 3rd → 1st
+    const nm = $("rvName"), rk = $("rvRank"), pt = $("rvPts"), nx = $("rvNext");
+    if (rvStep === 0) { rk.textContent = "AMBC Fall Fest · Best Line"; nm.textContent = "Riders ready…"; pt.textContent = rvGroups.length + " podium spot" + (rvGroups.length > 1 ? "s" : "") + " to reveal"; nx.textContent = "Reveal " + PLACE[order[0]]; return; }
+    const g = rvGroups[order[rvStep - 1]];
+    rk.textContent = (g.rows.length > 1 ? "Tied for " : "") + ordinalLabel(g.rank) + " place";
+    nm.textContent = g.rows.map((r) => r.name).join(" & ");
+    pt.textContent = g.rows[0].pts + " points · " + g.rows[0].c[0] + " first-place votes";
+    [rk, nm, pt].forEach((e) => { e.classList.remove("pop"); void e.offsetWidth; e.classList.add("pop"); });
+    const isLast = rvStep === order.length;
+    nx.textContent = isLast ? "Go ride!" : "Reveal " + PLACE[order[rvStep]];
+    burst(isLast ? 220 : 80);
+    if (isLast) setTimeout(() => { burst(120, innerWidth * .2, innerHeight * .5); burst(120, innerWidth * .8, innerHeight * .5); }, 350);
+  }
+  $("openReveal").onclick = openReveal;
+  $("rvNext").onclick = () => { if (rvStep >= rvGroups.length) { $("reveal").hidden = true; return; } rvStep++; showReveal(); };
+  $("rvClose").onclick = () => { $("reveal").hidden = true; };
+  document.addEventListener("keydown", (e) => { if (!$("reveal").hidden && e.key === "Escape") $("reveal").hidden = true; });
+
+  // ---------- events ----------
+  $("addForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const names = $("addName").value.split(/[\n,;]+/).map(norm).filter(Boolean);
+    const existing = new Set([...state.people.values()].map((p) => p.name.toLowerCase()));
+    const fresh = [], dupes = [];
+    for (const nm of names) { if (existing.has(nm.toLowerCase())) dupes.push(nm); else { existing.add(nm.toLowerCase()); fresh.push(nm); } }
+    $("addName").value = "";
+    if (!fresh.length) { if (dupes.length) toast(dupes[0] + " is already on the list"); return; }
+    const t0 = Date.now();
+    write(async () => { for (let i = 0; i < fresh.length; i++) await api.addPerson(fresh[i], t0 + i); },
+      (fresh.length === 1 ? fresh[0] + " is staged" : fresh.length + " riders staged") + (dupes.length ? ` (skipped ${dupes.length} duplicate${dupes.length > 1 ? "s" : ""})` : ""));
+  });
+  $("addName").addEventListener("paste", (e) => {
+    const txt = e.clipboardData?.getData("text") || "";
+    if (/[\n,;]/.test(txt)) { e.preventDefault(); $("addName").value = txt; $("addForm").requestSubmit(); }
+  });
+  $("rosterFilter").addEventListener("input", render);
+  $("voterSearch").addEventListener("input", render);
+  $("voterSearch").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("voterList").querySelector("button")?.click(); } });
+  $("candSearch").addEventListener("input", renderBallot);
+  $("candSearch").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const first = $("cands").querySelector("button");
+      if ($("candSearch").value.trim() && first) { $("candSearch").value = ""; toggle(first.dataset.id, first); }
+      else if (!$("saveBallot").disabled) $("saveBallot").click();
+    } else if (e.key === "Escape") closeBallot();
+  });
+  $("saveBallot").onclick = () => {
+    const v = cur.voterId, ranked = cur.picks.slice(), nm = nameOf(v);
+    write(() => api.saveBallot(v, ranked), "Sent! " + nm + "'s ballot is in");
+    const rd = $("rider"); if (rd && !reduce) { rd.classList.remove("hop"); void rd.getBoundingClientRect(); rd.classList.add("hop"); setTimeout(() => rd.classList.remove("hop"), 750); }
+    const r = $("saveBallot").getBoundingClientRect(); burst(40, r.left + r.width / 2, r.top);
+    closeBallot();
+  };
+  $("cancelBallot").onclick = closeBallot;
+  $("clearBallot").onclick = () => armed($("clearBallot"), "Tap to confirm", () => { const v = cur.voterId; write(() => api.deleteBallot(v), "Deleted " + nameOf(v) + "'s ballot"); closeBallot(); });
+  $("resetVotes").onclick = () => armed($("resetVotes"), "Tap again to clear votes", () => write(async () => {
+    if (cur) closeBallot();
+    if (db) { for (const id of [...state.ballots.keys()]) await db.doc("ballots/" + id).delete(); } else { state.ballots.clear(); saveLocal(); render(); }
+  }, "All votes cleared"));
+  $("resetAll").onclick = () => armed($("resetAll"), "Tap again to erase everything", () => write(async () => {
+    if (cur) closeBallot();
+    if (db) { for (const id of [...state.ballots.keys()]) await db.doc("ballots/" + id).delete(); for (const id of [...state.people.keys()]) await db.doc("participants/" + id).delete(); }
+    else { state.ballots.clear(); state.people.clear(); saveLocal(); render(); }
+  }, "Cleared riders and votes"));
+
+  // ---------- topo map background ----------
+  (function topo() {
+    const cv = $("topo"), g = cv.getContext("2d");
+    // seeded value noise so the map stays the same every visit
+    let seed = 865; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const N = 256, perm = Array.from({ length: N }, rnd);
+    const h = (x, y) => perm[(((x * 73856093) ^ (y * 19349663)) >>> 0) % N];
+    const sm = (t) => t * t * (3 - 2 * t);
+    function vnoise(x, y) {
+      const xi = Math.floor(x), yi = Math.floor(y), xf = sm(x - xi), yf = sm(y - yi);
+      const a = h(xi, yi), b = h(xi + 1, yi), c = h(xi, yi + 1), d = h(xi + 1, yi + 1);
+      return a + (b - a) * xf + (c - a) * yf + (a - b - c + d) * xf * yf;
+    }
+    const elev = (x, y) => vnoise(x, y) * .6 + vnoise(x * 2.1 + 17, y * 2.1 + 9) * .28 + vnoise(x * 4.3 + 41, y * 4.3 + 3) * .12;
+    function draw() {
+      const W = innerWidth, H = innerHeight, dpr = Math.min(2, devicePixelRatio || 1);
+      cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+      const css = getComputedStyle(document.documentElement);
+      const minor = css.getPropertyValue("--topo").trim(), major = css.getPropertyValue("--topo-index").trim(), trail = css.getPropertyValue("--topo-trail").trim();
+      const S = 7, cols = Math.ceil(W / S) + 2, rows = Math.ceil(H / S) + 2, sc = 1 / 230;
+      const f = new Float32Array(cols * rows);
+      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) f[j * cols + i] = elev(i * S * sc, j * S * sc);
+      const LEVELS = 26;
+      for (let L = 1; L < LEVELS; L++) {
+        const t = L / LEVELS, isIndex = L % 5 === 0;
+        g.beginPath();
+        for (let j = 0; j < rows - 1; j++) for (let i = 0; i < cols - 1; i++) {
+          const a = f[j * cols + i], b = f[j * cols + i + 1], c = f[(j + 1) * cols + i + 1], d = f[(j + 1) * cols + i];
+          const k = (a > t ? 8 : 0) | (b > t ? 4 : 0) | (c > t ? 2 : 0) | (d > t ? 1 : 0);
+          if (k === 0 || k === 15) continue;
+          const x = i * S, y = j * S;
+          const top = [x + S * (t - a) / (b - a), y], right = [x + S, y + S * (t - b) / (c - b)];
+          const bot = [x + S * (t - d) / (c - d), y + S], left = [x, y + S * (t - a) / (d - a)];
+          const seg = (p, q) => { g.moveTo(p[0], p[1]); g.lineTo(q[0], q[1]); };
+          switch (k) {
+            case 1: case 14: seg(left, bot); break;
+            case 2: case 13: seg(bot, right); break;
+            case 3: case 12: seg(left, right); break;
+            case 4: case 11: seg(top, right); break;
+            case 6: case 9: seg(top, bot); break;
+            case 7: case 8: seg(left, top); break;
+            case 5: seg(left, top); seg(bot, right); break;
+            case 10: seg(top, right); seg(left, bot); break;
+          }
+        }
+        g.strokeStyle = isIndex ? major : minor; g.lineWidth = isIndex ? 1.6 : .9; g.stroke();
+      }
+      // a dashed singletrack winding across the map
+      g.beginPath();
+      for (let s = 0; s <= 1.0001; s += .004) {
+        const x = -20 + s * (W + 40);
+        const y = H * (.62 + .16 * Math.sin(s * 7.3 + 1) + .07 * Math.sin(s * 19 + 2) - .25 * s);
+        s === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
+      }
+      g.setLineDash([7, 6]); g.lineCap = "round"; g.strokeStyle = trail; g.lineWidth = 2.4; g.stroke(); g.setLineDash([]);
+    }
+    let tm; const redraw = () => { clearTimeout(tm); tm = setTimeout(draw, 150); };
+    draw();
+    addEventListener("resize", redraw);
+    matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", redraw);
+    new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    document.fonts?.ready?.then(() => {});
+  })();
+
+  // ---------- boot ----------
+  loadLocal(); render();
+  const note = $("syncNote");
+  (async () => {
+    const d = window.claude?.use ? await window.claude.use("db").catch(() => null) : null;
+    if (!d) { note.hidden = false; note.textContent = "Saving on this device only."; return; }
+    db = d; state.people = new Map(); state.ballots = new Map(); render();
+    let pending = 2;
+    const timer = setTimeout(() => { note.hidden = false; note.className = "note warn"; note.textContent = "Can't reach saved results yet. Changes will sync when the connection returns."; }, 10000);
+    const settle = () => { if (--pending <= 0) { clearTimeout(timer); note.hidden = true; } };
+    const onErr = () => { clearTimeout(timer); note.hidden = false; note.className = "note warn"; note.textContent = "Live sync stopped. Reload the page to reconnect."; };
+    let s1 = false, s2 = false;
+    db.collection("participants").onSnapshot((snap) => {
+      state.people = new Map(snap.docs.map((d) => [d.id, d.data()])); render(); if (!s1 && !snap.metadata.fromCache) { s1 = true; settle(); }
+    }, onErr);
+    db.collection("ballots").onSnapshot((snap) => {
+      state.ballots = new Map(snap.docs.map((d) => [d.id, d.data()])); render(); if (!s2 && !snap.metadata.fromCache) { s2 = true; settle(); }
+    }, onErr);
+  })();
+})();
+</script>
+
+</body>
+</html>
